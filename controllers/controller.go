@@ -21,7 +21,7 @@ func FindByIdStudent(c *gin.Context) {
 	database.DB.First(&student, id)
 
 	if student.ID == 0 {
-		c.Data(404, gin.MIMEHTML, nil)
+		c.JSON(http.StatusNotFound, gin.H{})
 
 		return
 	}
@@ -37,4 +37,12 @@ func CreateStudent(c *gin.Context) {
 	}
 	database.DB.Create(&student)
 	c.JSON(http.StatusCreated, student)
+}
+
+func DeleteStudent(c *gin.Context) {
+	var student models.Student
+	id := c.Params.ByName("id")
+	database.DB.Delete(&student, id)
+
+	c.JSON(http.StatusNoContent, gin.H{})
 }
