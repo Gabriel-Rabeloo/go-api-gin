@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/Gabriel-Rabeloo/go-api-gin/database"
@@ -8,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func FillAllStudents(c *gin.Context) {
+func FindAllStudents(c *gin.Context) {
 	var students []models.Student
 	database.DB.Find(&students)
 	c.JSON(200, students)
@@ -30,11 +31,19 @@ func FindByIdStudent(c *gin.Context) {
 
 func CreateStudent(c *gin.Context) {
 	var student models.Student
+
 	if err := c.ShouldBindJSON(&student); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error": err.Error()})
 		return
 	}
+
+	if err := models.ValidateStudent(&student); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": err.Error()})
+		return
+	}
+
 	database.DB.Create(&student)
 	c.JSON(http.StatusCreated, student)
 }
@@ -43,6 +52,7 @@ func UpdateStudent(c *gin.Context) {
 	var student models.Student
 	id := c.Params.ByName("id")
 
+	fmt.Println()
 	database.DB.First(&student, id)
 
 	if err := c.ShouldBindJSON(&student); err != nil {
@@ -50,7 +60,17 @@ func UpdateStudent(c *gin.Context) {
 			"error": err.Error()})
 		return
 	}
-	database.DB.Model(&student).UpdateColumns(student)
+
+	if err := models.ValidateStudent(&student); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": err.Error()})
+		return
+	}
+
+	if err := database.DB.Model(&student).Where("id = ?", id).UpdateColumns(student).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error()})
+	}
 	c.JSON(http.StatusNoContent, gin.H{})
 }
 

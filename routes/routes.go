@@ -7,7 +7,7 @@ import (
 
 func HandleRequests() {
 	r := gin.Default()
-	r.GET("/api/students", controllers.FillAllStudents)
+	r.GET("/api/students", controllers.FindAllStudents)
 	r.POST("/api/students", controllers.CreateStudent)
 	r.GET("/api/students/:id", controllers.FindByIdStudent)
 	r.PATCH("/api/students/:id", controllers.UpdateStudent)
